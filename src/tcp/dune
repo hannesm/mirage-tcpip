@@ -3,5 +3,5 @@
  (public_name tcpip.tcp)
  (libraries logs mirage-protocols ipaddr cstruct lwt-dllist rresult
    mirage-profile tcpip duration randomconv fmt mirage-time
-   mirage-clock mirage-random)
+   mirage-clock mirage-random metrics)
  (preprocess (pps ppx_cstruct)))

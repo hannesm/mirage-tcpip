@@ -51,6 +51,7 @@ depends: [
   "mirage-random-test" {with-test & >= "0.1.0"}
   "arp-mirage" {with-test & >= "2.0.0"}
   "lru" {>= "0.3.0"}
+  "metrics"
 ]
 synopsis: "OCaml TCP/IP networking stack, used in MirageOS"
 description: """
