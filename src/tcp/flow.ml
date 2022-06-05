@@ -20,6 +20,9 @@ open Lwt.Infix
 let src = Logs.Src.create "tcp.pcb" ~doc:"Mirage TCP PCB module"
 module Log = (val Logs.src_log src : Logs.LOG)
 
+let src = Logs.Src.create "tcp.pcb-stats" ~doc:"Mirage TCP PCB module, buffer statistics"
+module Blog = (val Logs.src_log src : Logs.LOG)
+
 module Make(Ip: Tcpip.Ip.S)(Time:Mirage_time.S)(Clock:Mirage_clock.MCLOCK)(Random:Mirage_random.S) =
 struct
 
@@ -112,7 +115,7 @@ struct
       (Hashtbl.length t.connects)
 
   let log_with_stats name t =
-    Log.debug (fun fmt -> fmt "%s: %a" name pp_stats t)
+    Blog.debug (fun fmt -> fmt "%s: %a" name pp_stats t)
 
   let wscale_default = 2
 
