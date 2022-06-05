@@ -87,6 +87,9 @@ module Rx(Time:Mirage_time.S) = struct
     state: State.t;
   }
 
+  let size { segs ; _ } =
+    S.fold (fun seg acc -> Cstruct.length seg.payload + acc) segs 0
+
   let create ~rx_data ~wnd ~state ~tx_ack =
     let segs = S.empty in
     { segs; rx_data; tx_ack; wnd; state }
@@ -275,6 +278,11 @@ module Tx (Time:Mirage_time.S) (Clock:Mirage_clock.MCLOCK) = struct
   }
 
   type t = T: ('a, 'b) q -> t
+
+  let size (T q) =
+    Lwt_dllist.fold_l (fun seg acc ->
+        Cstruct.length seg.data + acc)
+      q.segs 0
 
   let ack_segment _ _ = ()
   (* Take any action to the user transmit queue due to this being

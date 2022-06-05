@@ -36,6 +36,8 @@ module Rx (T:Mirage_time.S) : sig
 
   val pp: Format.formatter -> t -> unit
 
+  val size : t -> int
+
   val create:
     rx_data:(Cstruct.t list option * Sequence.t option) Lwt_mvar.t ->
     wnd:Window.t ->
@@ -63,6 +65,8 @@ module Tx (Time:Mirage_time.S)(Clock:Mirage_clock.MCLOCK) : sig
 
   type t
   (** Queue of pre-transmission segments *)
+
+  val size : t -> int
 
   val create:
     xmit:('a, 'b) xmit -> wnd:Window.t -> state:State.t ->

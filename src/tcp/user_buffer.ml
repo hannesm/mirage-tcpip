@@ -35,9 +35,14 @@ module Rx = struct
     writers: unit Lwt.u Lwt_dllist.t;
     readers: Cstruct.t option Lwt.u Lwt_dllist.t;
     mutable watcher: int32 Lwt_mvar.t option;
-    mutable max_size: int32;
+    max_size: int32;
     mutable cur_size: int32;
   }
+
+  let size { q ; _ } =
+    Lwt_dllist.fold_l (fun cs_opt acc ->
+        (match cs_opt with None -> 0 | Some x -> Cstruct.length x) + acc)
+      q 0
 
   let create ~max_size ~wnd =
     let q = Lwt_dllist.create () in
@@ -121,6 +126,9 @@ module Tx(Time:Mirage_time.S)(Clock:Mirage_clock.MCLOCK) = struct
     max_size: int32;
     mutable bufbytes: int32;
   }
+
+  let size { buffer ; _ } =
+    Lwt_dllist.fold_l (fun buf acc -> Cstruct.length buf + acc) buffer 0
 
   let create ~max_size ~wnd ~txq =
     let buffer = Lwt_dllist.create () in

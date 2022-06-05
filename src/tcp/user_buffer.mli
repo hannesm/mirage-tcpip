@@ -24,6 +24,8 @@ module Rx : sig
   val cur_size : t -> int32
   val max_size : t -> int32
   val monitor: t -> int32 Lwt_mvar.t -> unit
+
+  val size : t -> int
 end
 
 module Tx(Time:Mirage_time.S)(Clock:Mirage_clock.MCLOCK) : sig
@@ -35,6 +37,8 @@ module Tx(Time:Mirage_time.S)(Clock:Mirage_clock.MCLOCK) : sig
     val output : ?flags:Segment.tx_flags -> ?options:Options.t list -> t ->
       Cstruct.t -> unit Lwt.t
   end
+
+  val size : t -> int
 
   val create: max_size:int32 -> wnd:Window.t -> txq:TXS.t -> t
   val available: t -> int32

@@ -58,6 +58,9 @@ struct
     keepalive: KEEPALIVE.t option; (* Optional TCP keepalive state *)
   }
 
+  let buffer_sizes { rxq ; txq ; urx ; utx ; _ } =
+    RXS.size rxq, TXS.size txq, User_buffer.Rx.size urx, UTX.size utx
+
   type flow = pcb
   type connection = flow * unit Lwt.t
 
@@ -86,13 +89,30 @@ struct
   let _pp_pcb fmt pcb =
     Format.fprintf fmt "id=[%a] state=[%a]" WIRE.pp pcb.id State.pp pcb.state
 
+  let pp_sizes fmt (rx, tx, urx, utx) =
+    Format.fprintf fmt "RX %d TX %d URX %d UTX %d TOTAL %d" rx tx urx utx
+      (rx + tx + urx + utx)
+
   let pp_stats fmt t =
-    Format.fprintf fmt "[channels=%d listens=%d connects=%d]"
+    let add_sizes (a, b, c, d) (a', b', c', d') =
+      a + a', b + b', c + c', d + d'
+    in
+    let ch_size =
+      Hashtbl.fold (fun _ (c, _) acc -> add_sizes (buffer_sizes c) acc)
+        t.channels (0, 0, 0, 0)
+    and l_size =
+      Hashtbl.fold (fun _ (_, (_, (c, _))) acc -> add_sizes (buffer_sizes c) acc)
+        t.listens (0, 0, 0, 0)
+    in
+    Format.fprintf fmt "[channels=%d (%a) listens=%d (%a) connects=%d]"
       (Hashtbl.length t.channels)
+      pp_sizes ch_size
       (Hashtbl.length t.listens)
+      pp_sizes l_size
       (Hashtbl.length t.connects)
 
-  let log_with_stats name t = Log.debug (fun fmt -> fmt "%s: %a" name pp_stats t)
+  let log_with_stats name t =
+    Log.debug (fun fmt -> fmt "%s: %a" name pp_stats t)
 
   let wscale_default = 2
 
