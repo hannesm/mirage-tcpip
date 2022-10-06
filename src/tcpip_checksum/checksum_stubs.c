@@ -77,7 +77,7 @@ mirage_tcpip_ones_complement_checksum(value v_cstruct)
   v_ba = Field(v_cstruct, 0);
   v_ofs = Field(v_cstruct, 1);
   v_len = Field(v_cstruct, 2);
-  checksum = ones_complement_checksum_bigarray(Caml_ba_data_val(v_ba), Int_val(v_ofs), Int_val(v_len), 0);
+  checksum = ones_complement_checksum_bigarray(Bytes_val(v_ba), Int_val(v_ofs), Int_val(v_len), 0);
   CAMLreturn(Val_int(checksum));
 }
 
@@ -94,7 +94,6 @@ mirage_tcpip_ones_complement_checksum_list(value v_cstruct_list)
   uint16_t overflow_val = 0;
   uint16_t overflow = 0;
   size_t count = 0;
-  struct caml_ba_array *a = NULL;
   unsigned char *addr;
   uint64_t *data64;
   uint64_t sum64 = 0;
@@ -105,8 +104,7 @@ mirage_tcpip_ones_complement_checksum_list(value v_cstruct_list)
     v_ba = Field(v_hd, 0);
     v_ofs = Field(v_hd, 1);
     v_len = Field(v_hd, 2);
-    a = Caml_ba_array_val(v_ba);
-    addr = a->data + Int_val(v_ofs);
+    addr = Bytes_val(v_ba) + Int_val(v_ofs);
     count = Int_val(v_len);
     if (count <= 0) continue;
     if (overflow != 0) {
@@ -273,7 +271,7 @@ mirage_tcpip_ones_complement_checksum(value v_cstruct)
   v_ba = Field(v_cstruct, 0);
   v_ofs = Field(v_cstruct, 1);
   v_len = Field(v_cstruct, 2);
-  sum = checksum_bigarray(Caml_ba_data_val(v_ba), Int_val(v_ofs), Int_val(v_len), 0);
+  sum = checksum_bigarray(Bytes_val(v_ba), Int_val(v_ofs), Int_val(v_len), 0);
   checksum = ~sum;
   CAMLreturn(Val_int(checksum));
 }
@@ -299,7 +297,7 @@ mirage_tcpip_ones_complement_checksum_list(value v_cstruct_list)
     v_ba = Field(v_hd, 0);
     v_ofs = Field(v_hd, 1);
     v_len = Field(v_hd, 2);
-    a = Caml_ba_array_val(v_ba);
+    a = Bytes_val(v_ba);
     addr = (unsigned char *) (a->data) + Int_val(v_ofs);
     count = Int_val(v_len);
     if (count <= 0) continue;
