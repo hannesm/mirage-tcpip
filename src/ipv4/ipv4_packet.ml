@@ -172,9 +172,10 @@ module Unmarshal = struct
     | `TCP -> (* checksum isn't optional in tcp, but pkt must be long enough *)
       check ipv4_header ~proto (Cstruct.length transport_packet)
     | `UDP ->
-      match Udp_wire.get_checksum transport_packet with
-      | n when (=) 0 @@ compare n 0x0000 -> true (* no checksum supplied, so the check trivially passes *)
-      | _ ->
+      let checksum = Cstruct.BE.get_uint16 transport_packet 6 in
+      if checksum = 0 then
+        true (* no checksum supplied, so the check trivially passes *)
+      else
         check ipv4_header ~proto (Cstruct.length transport_packet)
 
 end

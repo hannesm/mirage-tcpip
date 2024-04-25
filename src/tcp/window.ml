@@ -150,13 +150,12 @@ let set_tx_wnd t sz =
 let tx_mss t =
   t.tx_mss
 
-module Make(Clock:Mirage_clock.MCLOCK) = struct
   (* Advance transmitted packet sequence number *)
   let tx_advance t b =
     if not t.rtt_timer_on && not t.fast_recovery then begin
       t.rtt_timer_on <- true;
       t.rtt_timer_seq <- t.tx_nxt;
-      t.rtt_timer_starttime <- Clock.elapsed_ns ();
+      t.rtt_timer_starttime <- Mirage_clock.Mclock.elapsed_ns ();
     end;
     t.tx_nxt <- Sequence.add t.tx_nxt b
 
@@ -179,7 +178,7 @@ module Make(Clock:Mirage_clock.MCLOCK) = struct
         t.snd_una <- r;
         if t.rtt_timer_on && Sequence.gt r t.rtt_timer_seq then begin
           t.rtt_timer_on <- false;
-          let rtt_m = Int64.sub (Clock.elapsed_ns ()) t.rtt_timer_starttime in
+          let rtt_m = Int64.sub (Mirage_clock.Mclock.elapsed_ns ()) t.rtt_timer_starttime in
           if t.rtt_timer_reset then begin
             t.rtt_timer_reset <- false;
             t.rttvar <- Int64.div rtt_m 2L;
@@ -203,7 +202,6 @@ module Make(Clock:Mirage_clock.MCLOCK) = struct
       in
       t.cwnd <- Int32.add t.cwnd cwnd_incr
     end
-end
 
 let tx_nxt t = t.tx_nxt
 let tx_wnd t = t.tx_wnd

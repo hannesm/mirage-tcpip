@@ -2,10 +2,10 @@
 
 (** Internet Control Message Protocol: error messages and operational
     information. *)
-module type S = sig
-
   type t
   (** The type representing the internal state of the ICMP layer. *)
+
+  val connect : Static_ipv4.t -> t Lwt.t
 
   val disconnect: t -> unit Lwt.t
   (** Disconnect from the ICMP layer. While this might take some time to
@@ -27,10 +27,3 @@ module type S = sig
   val write : t -> ?src:ipaddr -> dst:ipaddr -> ?ttl:int -> Cstruct.t -> (unit, error) result Lwt.t
   (** [write t ~src ~dst ~ttl buffer] sends the ICMP message in [buffer] to [dst]
       over IP. Passes the time-to-live ([ttl]) to the IP stack if given. *)
-end
-
-module Make (I : Tcpip.Ip.S with type ipaddr = Ipaddr.V4.t) : sig
-  include S
-
-  val connect : I.t -> t Lwt.t
-end

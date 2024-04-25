@@ -12,7 +12,7 @@ let mac_of_multicast ip =
 
 type routing_error = [ `Local | `Gateway ]
 
-module Make(Log : Logs.LOG) (A : Arp.S) = struct
+module Make(Log : Logs.LOG) = struct
 
   open Lwt.Infix
 
@@ -24,7 +24,7 @@ module Make(Log : Logs.LOG) (A : Arp.S) = struct
     |ip when Ipaddr.V4.is_multicast ip ->
       Lwt.return @@ Ok (mac_of_multicast ip)
     |ip when Ipaddr.V4.Prefix.mem ip network -> (* Local *)
-      A.query arp ip >|= begin function
+      Arp.query arp ip >|= begin function
         | Ok mac -> Ok mac
         | Error `Timeout ->
           Log.info (fun f ->
@@ -33,7 +33,7 @@ module Make(Log : Logs.LOG) (A : Arp.S) = struct
                 Ipaddr.V4.pp ip);
           Error `Local
         | Error e ->
-          Log.info (fun f -> f "IP.output: %a" A.pp_error e);
+          Log.info (fun f -> f "IP.output: %a" Arp.pp_error e);
           Error `Local
       end
     |ip -> (* Gateway *)
@@ -44,7 +44,7 @@ module Make(Log : Logs.LOG) (A : Arp.S) = struct
               Ipaddr.V4.pp ip);
         Lwt.return (Error `Gateway)
       | Some gateway ->
-        A.query arp gateway >|= function
+        Arp.query arp gateway >|= function
         | Ok mac -> Ok mac
         | Error `Timeout ->
           Log.info (fun f ->
@@ -52,6 +52,6 @@ module Make(Log : Logs.LOG) (A : Arp.S) = struct
                 Ipaddr.V4.pp ip Ipaddr.V4.pp gateway);
           Error `Gateway
         | Error e ->
-          Log.info (fun f -> f "IP.output: %a" A.pp_error e);
+          Log.info (fun f -> f "IP.output: %a" Arp.pp_error e);
           Error `Gateway
 end

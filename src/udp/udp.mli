@@ -14,7 +14,6 @@
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  *)
 
-module Make (IP : Tcpip.Ip.S) (R : Mirage_random.S) : sig
-  include Tcpip.Udp.S with type ipaddr = IP.ipaddr
-  val connect : IP.t -> t Lwt.t
-end
+  include Tcpip.Udp.S with type ipaddr = Ipaddr.t
+  val connect : Ipv4v6.t -> t Lwt.t
+

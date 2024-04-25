@@ -19,7 +19,7 @@ open Lwt.Infix
 let src = Logs.Src.create "udp" ~doc:"Mirage UDP"
 module Log = (val Logs.src_log src : Logs.LOG)
 
-module Make (Ip : Tcpip.Ip.S) (Random : Mirage_random.S) = struct
+module Ip = Ipv4v6
 
   type ipaddr = Ip.ipaddr
   type callback = src:ipaddr -> dst:ipaddr -> src_port:int -> Cstruct.t -> unit Lwt.t
@@ -58,7 +58,7 @@ module Make (Ip : Tcpip.Ip.S) (Random : Mirage_random.S) = struct
 
   let writev ?src ?src_port ?ttl ~dst ~dst_port t bufs =
     let src_port = match src_port with
-      | None   -> Randomconv.int ~bound:65535 (fun x -> Random.generate x)
+      | None   -> Randomconv.int ~bound:65535 (fun x -> Mirage_crypto_rng_mirage.generate x)
       | Some p -> p
     in
     let fill_hdr buf =
@@ -94,5 +94,3 @@ module Make (Ip : Tcpip.Ip.S) (Random : Mirage_random.S) = struct
     Log.info (fun f -> f "UDP layer disconnected on %a"
                  Fmt.(list ~sep:(any ", ") Ip.pp_ipaddr) @@ Ip.get_ip t.ip);
     Lwt.return_unit
-
-end

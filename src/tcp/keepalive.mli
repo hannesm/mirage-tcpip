@@ -44,7 +44,6 @@ val next: configuration:Tcpip.Tcp.Keepalive.t -> ns:int64 -> state -> action * s
     that we last received a packet [ns] nanoseconds ago and the new state
     of the connection *)
 
-module Make(T:Mirage_time.S)(Clock:Mirage_clock.MCLOCK): sig
   type t
   (** A keep-alive timer *)
 
@@ -56,4 +55,3 @@ module Make(T:Mirage_time.S)(Clock:Mirage_clock.MCLOCK): sig
   val refresh: t -> unit
   (** [refresh t] marks the connection [t] as alive. This should be called
       when packets are received. *)
-end

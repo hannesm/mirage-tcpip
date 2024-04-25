@@ -20,16 +20,15 @@ open Lwt.Infix
 let src = Logs.Src.create "tcp.pcb" ~doc:"Mirage TCP PCB module"
 module Log = (val Logs.src_log src : Logs.LOG)
 
-module Make(Ip: Tcpip.Ip.S)(Time:Mirage_time.S)(Clock:Mirage_clock.MCLOCK)(Random:Mirage_random.S) =
-struct
+module Ip = Ipv4v6
 
   module ACK = Ack.Immediate
-  module RXS = Segment.Rx(Time)(ACK)
-  module TXS = Segment.Tx(Time)(Clock)
-  module UTX = User_buffer.Tx(Time)(Clock)
+  module RXS = Segment.Rx(ACK)
+  module TXS = Segment.Tx
+  module UTX = User_buffer.Tx
   module WIRE = Wire.Make(Ip)
-  module STATE = State.Make(Time)
-  module KEEPALIVE = Keepalive.Make(Time)(Clock)
+  module STATE = State
+  module KEEPALIVE = Keepalive
 
   type error = [ Tcpip.Tcp.error | WIRE.error]
 
@@ -510,7 +509,7 @@ struct
     log_with_stats "process-syn" t;
     match Hashtbl.find_opt t.listeners (WIRE.src_port id) with
     | Some (keepalive, process) ->
-      let tx_isn = Sequence.of_int32 (Randomconv.int32 Random.generate) in
+      let tx_isn = Sequence.of_int32 (Randomconv.int32 Mirage_crypto_rng_mirage.generate) in
       (* TODO: make this configurable per listener *)
       let rx_wnd = 65535 in
       let rx_wnd_scaleoffer = wscale_default in
@@ -678,7 +677,7 @@ struct
     let rxtime = match count with
       | 0 -> 3 | 1 -> 6 | 2 -> 12 | 3 -> 24 | _ -> 48
     in
-    Time.sleep_ns (Duration.of_sec rxtime) >>= fun () ->
+    Mirage_time.sleep_ns (Duration.of_sec rxtime) >>= fun () ->
     match hashtbl_find t.connects id with
     | None                -> Lwt.return_unit
     | Some (wakener, isn, _) ->
@@ -703,7 +702,7 @@ struct
 
   let connect ?keepalive t ~dst ~dst_port =
     let id = getid t dst dst_port in
-    let tx_isn = Sequence.of_int32 (Randomconv.int32 Random.generate) in
+    let tx_isn = Sequence.of_int32 (Randomconv.int32 Mirage_crypto_rng_mirage.generate) in
     (* TODO: This is hardcoded for now - make it configurable *)
     let rx_wnd_scaleoffer = wscale_default in
     let options =
@@ -751,7 +750,7 @@ struct
   (* Construct the main TCP thread *)
   let connect ip =
     let localport =
-      1024 + (Randomconv.int ~bound:(0xFFFF - 1024) Random.generate)
+      1024 + (Randomconv.int ~bound:(0xFFFF - 1024) Mirage_crypto_rng_mirage.generate)
     in
     let listens = Hashtbl.create 1 in
     let connects = Hashtbl.create 1 in
@@ -769,4 +768,3 @@ struct
     Hashtbl.reset t.listens;
     Hashtbl.reset t.connects
     (* TODO: should there be Lwt tasks being cancelled? *)
-end

@@ -21,34 +21,29 @@ module I = Ipaddr
 
 open Lwt.Infix
 
-module Make (N : Mirage_net.S)
-            (E : Ethernet.S)
-            (R : Mirage_random.S)
-            (T : Mirage_time.S)
-            (C : Mirage_clock.MCLOCK) = struct
   type ipaddr   = Ipaddr.V6.t
   type callback = src:ipaddr -> dst:ipaddr -> Cstruct.t -> unit Lwt.t
 
   let pp_ipaddr = Ipaddr.V6.pp
 
   type t =
-    { ethif : E.t;
+    { ethif : Ethernet.t;
       mutable ctx : Ndpv6.context }
 
-  type error = [ Tcpip.Ip.error | `Ethif of E.error ]
+  type error = [ Tcpip.Ip.error | `Ethif of Ethernet.error ]
 
   let pp_error ppf = function
     | #Tcpip.Ip.error as e -> Tcpip.Ip.pp_error ppf e
-    | `Ethif e -> E.pp_error ppf e
+    | `Ethif e -> Ethernet.pp_error ppf e
 
   let output t (dst, size, fill) =
-    E.write t.ethif dst `IPv6 ~size fill
+    Ethernet.write t.ethif dst `IPv6 ~size fill
 
   let output_ign t a = output t a >|= fun _ -> ()
 
   let start_ticking t u =
     let rec loop u =
-      let now = C.elapsed_ns () in
+      let now = Mirage_clock.Mclock.elapsed_ns () in
       let ctx, outs = Ndpv6.tick ~now t.ctx in
       t.ctx <- ctx;
       let u = match u, Ndpv6.get_ip t.ctx with
@@ -56,15 +51,15 @@ module Make (N : Mirage_net.S)
         | Some u, _ -> Lwt.wakeup_later u (); None
       in
       Lwt_list.iter_s (output_ign t) outs (* MCP: replace with propagation *) >>= fun () ->
-      T.sleep_ns (Duration.of_sec 1) >>= fun () ->
+      Mirage_time.sleep_ns (Duration.of_sec 1) >>= fun () ->
       loop u
     in
     loop (Some u)
 
-  let mtu t ~dst:_ = E.mtu t.ethif - Ipv6_wire.sizeof_ipv6
+  let mtu t ~dst:_ = Ethernet.mtu t.ethif - Ipv6_wire.sizeof_ipv6
 
   let write t ?fragment:_ ?ttl:_ ?src dst proto ?(size = 0) headerf bufs =
-    let now = C.elapsed_ns () in
+    let now = Mirage_clock.Mclock.elapsed_ns () in
     (* TODO fragmentation! *)
     let payload = Cstruct.concat bufs in
     let size' = size + Cstruct.length payload in
@@ -83,7 +78,7 @@ module Make (N : Mirage_net.S)
       let squeal = function
       | Ok () as ok -> Lwt.return ok
       | Error e ->
-        Log.warn (fun f -> f "ethif write errored: %a" E.pp_error e);
+        Log.warn (fun f -> f "ethif write errored: %a" Ethernet.pp_error e);
         Lwt.return @@ Error (`Ethif e)
       in
       match progress with
@@ -95,8 +90,8 @@ module Make (N : Mirage_net.S)
     Lwt_list.fold_left_s fail_any (Ok ()) outs
 
   let input t ~tcp ~udp ~default buf =
-    let now = C.elapsed_ns () in
-    let ctx, outs, actions = Ndpv6.handle ~now ~random:R.generate t.ctx buf in
+    let now = Mirage_clock.Mclock.elapsed_ns () in
+    let ctx, outs, actions = Ndpv6.handle ~now ~random:Mirage_crypto_rng_mirage.generate t.ctx buf in
     t.ctx <- ctx;
     Lwt_list.iter_s (function
         | `Tcp (src, dst, buf) -> tcp ~src ~dst buf
@@ -128,8 +123,8 @@ module Make (N : Mirage_net.S)
 
   let connect ?(no_init = false) ?(handle_ra = true) ?cidr ?gateway netif ethif =
     Log.info (fun f -> f "IP6: Starting");
-    let now = C.elapsed_ns () in
-    let ctx, outs = Ndpv6.local ~handle_ra ~now ~random:R.generate (E.mac ethif) in
+    let now = Mirage_clock.Mclock.elapsed_ns () in
+    let ctx, outs = Ndpv6.local ~handle_ra ~now ~random:Mirage_crypto_rng_mirage.generate (Ethernet.mac ethif) in
     let ctx, outs = match cidr with
       | None -> ctx, outs
       | Some p ->
@@ -150,17 +145,17 @@ module Make (N : Mirage_net.S)
       (* call listen until we're good in respect to DAD *)
       let ethif_listener =
         let noop ~src:_ ~dst:_ _ = Lwt.return_unit in
-        E.input ethif
+        Ethernet.input ethif
           ~arpv4:(fun _ -> Lwt.return_unit)
           ~ipv4:(fun _ -> Lwt.return_unit)
           ~ipv6:(input t ~tcp:noop ~udp:noop ~default:(fun ~proto:_ -> noop))
       in
-      let timeout = T.sleep_ns (Duration.of_sec 3) in
+      let timeout = Mirage_time.sleep_ns (Duration.of_sec 3) in
       Lwt.pick [
         (* MCP: replace this error swallowing with proper propagation *)
         (Lwt_list.iter_s (output_ign t) outs >>= fun () ->
          task) ;
-        (N.listen netif ~header_size:Ethernet.Packet.sizeof_ethernet ethif_listener >|= fun _ -> ()) ;
+        (Mirage_net.listen netif ~header_size:Ethernet.Packet.sizeof_ethernet ethif_listener >|= fun _ -> ()) ;
         timeout
       ] >>= fun () ->
       let expected_ips = match cidr with None -> 1 | Some _ -> 2 in
@@ -170,4 +165,3 @@ module Make (N : Mirage_net.S)
                      Fmt.(list ~sep:(any ",@ ") Ipaddr.V6.pp) ips);
         Lwt.return t
       | _ -> Lwt.fail_with "IP6 not started, couldn't assign IP addresses"
-end

@@ -19,8 +19,7 @@ open Lwt.Infix
 let src = Logs.Src.create "ipv4" ~doc:"Mirage IPv4"
 module Log = (val Logs.src_log src : Logs.LOG)
 
-module Make (R: Mirage_random.S) (C: Mirage_clock.MCLOCK) (Ethernet: Ethernet.S) (Arpv4 : Arp.S) = struct
-  module Routing = Routing.Make(Log)(Arpv4)
+  module Routing = Routing.Make(Log)
 
   (** IO operation errors *)
   type error = [ Tcpip.Ip.error | `Would_fragment | `Ethif of Ethernet.error ]
@@ -35,7 +34,7 @@ module Make (R: Mirage_random.S) (C: Mirage_clock.MCLOCK) (Ethernet: Ethernet.S)
 
   type t = {
     ethif : Ethernet.t;
-    arp : Arpv4.t;
+    arp : Arp.t;
     cidr: Ipaddr.V4.Prefix.t;
     gateway: Ipaddr.V4.t option;
     mutable cache: Fragments.Cache.t;
@@ -73,7 +72,7 @@ module Make (R: Mirage_random.S) (C: Mirage_clock.MCLOCK) (Ethernet: Ethernet.S)
         in
         let hdr =
           let src = match src with None -> Ipaddr.V4.Prefix.address t.cidr | Some x -> x in
-          let id = if multiple then Randomconv.int16 R.generate else 0 in
+          let id = if multiple then Randomconv.int16 Mirage_crypto_rng_mirage.generate else 0 in
           Ipv4_packet.{
             options = Cstruct.empty ;
             src ; dst ; ttl ; off ; id ;
@@ -145,7 +144,7 @@ module Make (R: Mirage_random.S) (C: Mirage_clock.MCLOCK) (Ethernet: Ethernet.S)
         Log.debug (fun m -> m "dropping zero length IPv4 frame %a" Ipv4_packet.pp packet) ;
         Lwt.return_unit
       end else
-        let ts = C.elapsed_ns () in
+        let ts = Mirage_clock.Mclock.elapsed_ns () in
         let cache, res = Fragments.process t.cache ts packet payload in
         t.cache <- cache ;
         match res with
@@ -162,7 +161,7 @@ module Make (R: Mirage_random.S) (C: Mirage_clock.MCLOCK) (Ethernet: Ethernet.S)
     (if no_init then
        Lwt.return_unit
      else
-       Arpv4.set_ips arp [Ipaddr.V4.Prefix.address cidr]) >|= fun () ->
+       Arp.set_ips arp [Ipaddr.V4.Prefix.address cidr]) >|= fun () ->
     let cache = Fragments.Cache.empty fragment_cache_size in
     { ethif; arp; cidr; gateway; cache }
 
@@ -178,4 +177,3 @@ module Make (R: Mirage_random.S) (C: Mirage_clock.MCLOCK) (Ethernet: Ethernet.S)
 
   let mtu t ~dst:_ = Ethernet.mtu t.ethif - Ipv4_wire.sizeof_ipv4
 
-end
