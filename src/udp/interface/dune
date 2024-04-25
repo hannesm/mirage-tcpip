@@ -1,0 +1,6 @@
+(library
+ (name udp)
+ (public_name tcpip.udp)
+ (libraries cstruct lwt fmt tcpip.ipv4v6)
+ (virtual_modules udp)
+ (default_implementation tcpip.udp-unix))

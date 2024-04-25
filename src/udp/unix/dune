@@ -1,0 +1,7 @@
+(library
+ (name udp_unix)
+ (public_name tcpip.udp-unix)
+ (implements tcpip.udp)
+ (instrumentation
+  (backend bisect_ppx))
+ (libraries lwt.unix cstruct-lwt ipaddr.unix logs))

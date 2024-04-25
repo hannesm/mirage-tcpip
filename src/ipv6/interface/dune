@@ -1,0 +1,6 @@
+(library
+ (name ipv6)
+ (public_name tcpip.ipv6)
+ (libraries cstruct lwt ethernet tcpip mirage-net)
+ (virtual_modules ipv6)
+ (default_implementation tcpip.ipv6-unix))

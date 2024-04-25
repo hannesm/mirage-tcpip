@@ -1,0 +1,7 @@
+(library
+ (name tcpip_ipv4v6_direct)
+ (public_name tcpip.ipv4v6-direct)
+ (implements tcpip.ipv4v6)
+ (instrumentation
+  (backend bisect_ppx))
+ (libraries tcpip tcpip.ipv4 tcpip.ipv6))

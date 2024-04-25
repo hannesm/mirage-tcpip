@@ -1,0 +1,6 @@
+(library
+ (name ipv4)
+ (public_name tcpip.ipv4)
+ (libraries cstruct lwt ethernet arp.mirage tcpip)
+ (virtual_modules ipv4)
+ (default_implementation tcpip.ipv4-unix))

@@ -1,0 +1,6 @@
+(library
+ (name icmpv4)
+ (public_name tcpip.icmpv4)
+ (libraries cstruct lwt tcpip.ipv4)
+ (virtual_modules icmpv4)
+ (default_implementation tcpip.icmpv4-unix))

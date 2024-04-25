@@ -1,0 +1,7 @@
+(library
+ (name udp_direct)
+ (public_name tcpip.udp-direct)
+ (implements tcpip.udp)
+ (instrumentation
+  (backend bisect_ppx))
+ (libraries logs tcpip randomconv tcpip.checksum mirage-crypto-rng-mirage tcpip.ipv4v6))

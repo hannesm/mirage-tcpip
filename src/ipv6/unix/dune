@@ -1,0 +1,7 @@
+(library
+ (name tcpip_ipv6_unix)
+ (public_name tcpip.ipv6-unix)
+ (implements tcpip.ipv6)
+ (instrumentation
+  (backend bisect_ppx))
+ (libraries lwt.unix cstruct-lwt ipaddr.unix logs))

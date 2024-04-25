@@ -1,0 +1,10 @@
+(library
+ (name tcp_direct)
+ (public_name tcpip.tcp-direct)
+ (instrumentation
+  (backend bisect_ppx))
+ (implements tcpip.tcp)
+ (private_modules ack keepalive options segment sequence state stats tcp_packet tcp_wire tcptimer user_buffer window wire)
+ (libraries tcpip.tcp.common logs ipaddr cstruct lwt-dllist tcpip.checksum
+   tcpip duration randomconv fmt mirage-time mirage-clock
+   mirage-flow metrics mirage-crypto-rng-mirage tcpip.ipv4v6))

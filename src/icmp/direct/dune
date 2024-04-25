@@ -1,0 +1,8 @@
+(library
+ (name tcpip_icmpv4_direct)
+ (public_name tcpip.icmpv4-direct)
+ (implements tcpip.icmpv4)
+ (instrumentation
+  (backend bisect_ppx))
+ (private_modules icmpv4_packet icmpv4_wire)
+ (libraries logs ipaddr tcpip.checksum tcpip.ipv4))

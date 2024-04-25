@@ -1,0 +1,9 @@
+(library
+ (name tcpip_ipv4_direct)
+ (public_name tcpip.ipv4-direct)
+ (implements tcpip.ipv4)
+ (instrumentation
+  (backend bisect_ppx))
+ (private_modules fragments ipv4_packet ipv4_wire routing)
+ (libraries logs ipaddr cstruct tcpip tcpip.checksum
+   mirage-clock randomconv lru arp.mirage ethernet mirage-crypto-rng-mirage))
