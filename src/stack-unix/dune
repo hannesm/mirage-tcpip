@@ -1,14 +1,4 @@
 (library
- (name icmpv4_socket)
- (public_name tcpip.icmpv4-socket)
- (modules icmpv4_socket)
- (wrapped false)
- (instrumentation
-  (backend bisect_ppx))
- (libraries lwt.unix ipaddr.unix cstruct-lwt tcpip.icmpv4 tcpip.ipv4
-   tcpip.ipv6))
-
-(library
  (name udpv4v6_socket)
  (public_name tcpip.udpv4v6-socket)
  (modules udpv4v6_socket)
