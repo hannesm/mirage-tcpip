@@ -157,7 +157,10 @@ module Log = (val Logs.src_log src : Logs.LOG)
           | Some `ICMP | None -> default ~proto:packet.proto ~src ~dst payload
 
   let connect
-      ?(no_init = false) ~cidr ?gateway ?(fragment_cache_size = 1024 * 256) ethif arp =
+      ?(no_init = false) ~cidr ?gateway ?(fragment_cache_size = 1024 * 256) ?ethernet ?arp () =
+    let ethif = match ethernet with None -> failwith "missing ethernet" | Some x -> x
+    and arp = match arp with None -> failwith "missing arp" | Some x -> x
+    in
     (if no_init then
        Lwt.return_unit
      else

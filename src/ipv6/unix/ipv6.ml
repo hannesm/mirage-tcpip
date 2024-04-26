@@ -26,7 +26,7 @@ let pp_ipaddr = Ipaddr.V6.pp
 let mtu _ ~dst:_ = 1500 - 40 (* Ipv6_wire.sizeof_ipv6 *)
 
 let disconnect _ = Lwt.return_unit
-let connect ?no_init:_ ?handle_ra:_ ?cidr ?gateway:_ _ _ =
+let connect ?no_init:_ ?handle_ra:_ ?cidr ?gateway:_ ?net:_ ?ethernet:_ () =
   Lwt.return { cidr }
 
 let input _ ~tcp:_ ~udp:_ ~default:_ _ = Lwt.return_unit

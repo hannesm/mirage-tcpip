@@ -121,7 +121,10 @@ open Lwt.Infix
     Cstruct.set_uint8 ph 39 (Ipv6_wire.protocol_to_int proto);
     ph
 
-  let connect ?(no_init = false) ?(handle_ra = true) ?cidr ?gateway netif ethif =
+let connect ?(no_init = false) ?(handle_ra = true) ?cidr ?gateway ?net ?ethernet () =
+  let netif = match net with None -> failwith "missing network device" | Some x -> x
+  and ethif = match ethernet with None -> failwith "missing ethernet" | Some x -> x
+    in
     Log.info (fun f -> f "IP6: Starting");
     let now = Mirage_clock.Mclock.elapsed_ns () in
     let ctx, outs = Ndpv6.local ~handle_ra ~now ~random:Mirage_crypto_rng_mirage.generate (Ethernet.mac ethif) in

@@ -20,5 +20,5 @@ val connect :
   ?handle_ra:bool ->
   ?cidr:Ipaddr.V6.Prefix.t ->
   ?gateway:Ipaddr.V6.t ->
-  Mirage_net.t -> Ethernet.t -> t Lwt.t
+  ?net:Mirage_net.t -> ?ethernet:Ethernet.t -> unit -> t Lwt.t
 

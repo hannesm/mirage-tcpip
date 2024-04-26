@@ -25,7 +25,7 @@ let pp_ipaddr = Ipaddr.V4.pp
 let mtu _ ~dst:_ = 1500 - (* Ipv4_wire.sizeof_ipv4 *) 20
 
 let disconnect _ = Lwt.return_unit
-let connect ?no_init:_ ~cidr ?gateway:_ ?fragment_cache_size:_ _ _ =
+let connect ?no_init:_ ~cidr ?gateway:_ ?fragment_cache_size:_ ?ethernet:_ ?arp:_ () =
   Lwt.return { cidr }
 
 let input _ ~tcp:_ ~udp:_ ~default:_ _ = Lwt.return_unit
