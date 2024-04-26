@@ -19,6 +19,12 @@ open Lwt.Infix
 let src = Logs.Src.create "tcpip-stack-socket" ~doc:"Platform's native TCP/IP stack"
 module Log = (val Logs.src_log src : Logs.LOG)
 
+  module UDP = Udp
+
+  module TCP = Tcp
+
+  module IP = Ipv4v6
+
 type t = {
   ip : Ipv4v6.t;
     udp : Udp.t;
