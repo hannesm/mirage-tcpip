@@ -3,5 +3,5 @@
  (public_name tcpip.stack)
  (libraries cstruct lwt tcpip ethernet arp mirage-net tcpip.udp tcpip.tcp
    tcpip.ipv4v6 tcpip.icmpv4)
- (virtual_modules stack)
+ (virtual_modules tcpip_stack)
  (default_implementation tcpip.stack-unix))
