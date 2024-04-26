@@ -34,9 +34,9 @@ let any_v6 = Ipaddr_unix.V6.to_inet_addr Ipaddr.V6.unspecified
 include Tcp_socket
 
 let connect ipv4v6 =
-  let ips = Ipv4v6.get_ip ipv4v6 in
-  let interface =
-    match List.partition (function Ipaddr.V4 _ -> true | _ -> false) ips with
+  let _ips = Ipv4v6.get_ip ipv4v6 in
+  let interface = `Any
+(*    match List.partition (function Ipaddr.V4 _ -> true | _ -> false) ips with
     | [], [] -> assert false
     | [ Ipaddr.V4 ip ], [] ->
       let v4_unix = Ipaddr_unix.V4.to_inet_addr ip in
@@ -49,7 +49,7 @@ let connect ipv4v6 =
        | _, _ ->
          let v4_unix = Ipaddr_unix.V4.to_inet_addr ipv4 in
          `Ip (v4_unix, Ipaddr_unix.V6.to_inet_addr ipv6))
-  | _ -> assert false
+      | _ -> assert false *)
   in
   Lwt.return {interface; active_connections = []; listen_sockets = Hashtbl.create 7; switched_off = fst (Lwt.wait ())}
 

@@ -94,8 +94,8 @@ let close fd =
 
 let connect ipv4v6 =
   let ips = Ipv4v6.get_ip ipv4v6 in
-  let interface =
-    match List.partition (function Ipaddr.V4 _ -> true | _ -> false) ips with
+  let interface = `Any
+(*    match List.partition (function Ipaddr.V4 _ -> true | _ -> false) ips with
     | [], [] -> assert false
     | [ Ipaddr.V4 ip ], [] ->
       let v4_unix = Ipaddr_unix.V4.to_inet_addr ip in
@@ -108,7 +108,7 @@ let connect ipv4v6 =
        | _, _ ->
          let v4_unix = Ipaddr_unix.V4.to_inet_addr ipv4 in
          `Ip (v4_unix, Ipaddr_unix.V6.to_inet_addr ipv6))
-  | _ -> assert false
+      | _ -> assert false*)
   in
   let listen_fds = Hashtbl.create 7 in
   Lwt.return { interface; listen_fds; switched_off = fst (Lwt.wait ()) }
