@@ -5,4 +5,8 @@
  (instrumentation
   (backend bisect_ppx))
  (private_modules tcp_socket tcp_socket_options)
+ (foreign_stubs
+  (language c)
+  (names tcp_socket_options_stubs)
+  (flags :standard))
  (libraries lwt.unix cstruct-lwt ipaddr.unix logs tcpip.ipv4 tcpip.ipv6))
